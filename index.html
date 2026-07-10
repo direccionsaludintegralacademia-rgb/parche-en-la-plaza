@@ -1,3 +1,13 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>El Parche de la Plaza | Cultura Viva y Baile Auténtico en Cartagena</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Vive la cultura caribeña en Getsemaní, Cartagena: clases exprés de baile, experiencias nocturnas, tours culturales y souvenirs. Reserva tu experiencia hoy.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22 font-size=%2280%22><text y=%22.9em%22>&#128131;</text></svg>">
+</head>
+<body>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;700&display=swap');
@@ -430,7 +440,7 @@
         <div class="field-error" id="register-pass-error"></div>
       </div>
       <div style="font-size:11px;color:rgba(255,255,255,0.35);line-height:1.5;margin:4px 0">
-        Al registrarte aceptas nuestros Términos de Servicio y Política de Privacidad.
+        Al registrarte aceptas nuestros <span style="color:var(--amarillo);cursor:pointer;text-decoration:underline" onclick="showLegal('terminos')">Términos de Servicio</span> y <span style="color:var(--amarillo);cursor:pointer;text-decoration:underline" onclick="showLegal('privacidad')">Política de Privacidad</span>.
       </div>
       <button class="btn-primary" onclick="handleRegister()">Crear Cuenta</button>
     </div>
@@ -513,10 +523,7 @@
 
       <div style="background:#1A1A1A;border-radius:12px;padding:16px;margin-bottom:20px">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--amarillo);margin-bottom:10px">MIS RESERVAS</div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.4);text-align:center;padding:20px 0">
-          No tienes reservas activas.<br>
-          <span style="color:var(--amarillo);cursor:pointer;font-weight:600">Reserva tu experiencia →</span>
-        </div>
+        <div id="mis-reservas-list"></div>
       </div>
     </div>
 
@@ -775,9 +782,19 @@
       <div class="modal-service-desc" id="modal-desc">Aprende los ritmos afrocaribeños más auténticos de Colombia en 30 minutos en el corazón de Getsemaní.</div>
       <div id="modal-details"></div>
       <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">
-        <button class="btn-primary" onclick="closeModal()">Reservar Ahora</button>
-        <button class="btn-secondary" onclick="closeModal()">Más Información</button>
+        <button class="btn-primary" onclick="reserveService()">Reservar Ahora</button>
+        <button class="btn-secondary" onclick="moreInfoService()">Más Información</button>
       </div>
+    </div>
+  </div>
+
+  <!-- LEGAL MODAL -->
+  <div class="modal-overlay" id="legal-modal">
+    <div class="modal-sheet" style="position:relative;max-height:80vh;overflow-y:auto">
+      <div class="modal-handle"></div>
+      <button class="modal-close" onclick="closeLegalModal()">✕</button>
+      <div id="legal-modal-title" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--amarillo);margin-bottom:12px"></div>
+      <div id="legal-modal-body" style="font-size:13px;line-height:1.6;color:rgba(255,255,255,0.8);white-space:pre-line"></div>
     </div>
   </div>
 
@@ -935,9 +952,102 @@ function switchAdminTab(tab) {
   document.getElementById('admin-tab-'+tab).classList.add('active');
 }
 
+let currentModalService = null;
+const PP_RESERVATIONS_KEY = 'ppReservations';
+function getReservations() {
+  try { return JSON.parse(localStorage.getItem(PP_RESERVATIONS_KEY)) || []; } catch (e) { return []; }
+}
+function saveReservations(list) { localStorage.setItem(PP_RESERVATIONS_KEY, JSON.stringify(list)); }
+
+function reserveService() {
+  if (!currentModalService) return;
+  const s = SERVICES[currentModalService];
+  if (!s) return;
+  const list = getReservations();
+  list.push({
+    id: Date.now(),
+    serviceKey: currentModalService,
+    title: s.title,
+    price: s.price,
+    icon: s.icon,
+    createdAt: new Date().toISOString()
+  });
+  saveReservations(list);
+  closeModal();
+  renderMisReservas();
+  alert('¡Reserva registrada con éxito! Te contactaremos por WhatsApp para confirmar los detalles.');
+}
+
+function cancelReservation(id) {
+  const list = getReservations().filter(r => r.id !== id);
+  saveReservations(list);
+  renderMisReservas();
+}
+
+function moreInfoService() {
+  if (!currentModalService) return;
+  const s = SERVICES[currentModalService];
+  if (!s) return;
+  const msg = encodeURIComponent('Hola, quiero más información sobre: ' + s.title);
+  window.open('https://wa.me/573018678777?text=' + msg, '_blank');
+}
+
+function renderMisReservas() {
+  const el = document.getElementById('mis-reservas-list');
+  if (!el) return;
+  const list = getReservations();
+  if (!list.length) {
+    el.innerHTML = '<div style="font-size:13px;color:rgba(255,255,255,0.4);text-align:center;padding:20px 0">No tienes reservas activas.<br><span style="color:var(--amarillo);cursor:pointer;font-weight:600" onclick="scrollToServices()">Reserva tu experiencia →</span></div>';
+    return;
+  }
+  el.innerHTML = list.map(r => `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.05);border-radius:10px;padding:10px 12px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">${r.icon}</span>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#fff">${r.title}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4)">${r.price}</div>
+        </div>
+      </div>
+      <button onclick="cancelReservation(${r.id})" style="background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">Cancelar</button>
+    </div>
+  `).join('');
+}
+
+function scrollToServices() {
+  goTo('client');
+  setTimeout(() => {
+    const elS = document.querySelector('.services-grid');
+    if (elS) elS.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+const LEGAL_TEXT = {
+  terminos: {
+    title: 'Términos de Servicio',
+    body: 'Última actualización: 2026.\n\nEstos Términos de Servicio son un documento de referencia general para el uso de esta plataforma de "El Parche de la Plaza".\n\n1. Uso de la plataforma: este sitio ofrece información sobre clases de baile, tours y experiencias culturales en Getsemaní, Cartagena. Las reservas realizadas aquí son solicitudes iniciales; la confirmación final se realiza por WhatsApp.\n\n2. Cuentas de usuario: eres responsable de la confidencialidad de tus credenciales de acceso.\n\n3. Precios: los valores mostrados son referenciales y pueden variar según disponibilidad y temporada.\n\n4. Cancelaciones: puedes cancelar tus reservas desde la sección "Mis Reservas" antes de su confirmación.\n\n5. Cambios: podemos actualizar estos términos en cualquier momento; el uso continuado del sitio implica la aceptación de los cambios.\n\nPara dudas, contáctanos por WhatsApp o correo electrónico.'
+  },
+  privacidad: {
+    title: 'Política de Privacidad',
+    body: 'Última actualización: 2026.\n\nEn "El Parche de la Plaza" respetamos tu privacidad.\n\n1. Datos que recopilamos: nombre, correo electrónico, teléfono y país que proporcionas al registrarte.\n\n2. Uso de los datos: utilizamos tu información únicamente para gestionar tu cuenta, tus reservas y comunicarnos contigo sobre nuestros servicios.\n\n3. Almacenamiento: en esta versión, los datos se guardan localmente en tu propio navegador y no se comparten con terceros.\n\n4. Tus derechos: puedes solicitar la eliminación de tus datos escribiéndonos por WhatsApp o correo electrónico en cualquier momento.\n\n5. Seguridad: aplicamos medidas razonables para proteger tu información, aunque ningún sistema es 100% infalible.'
+  }
+};
+
+function showLegal(key) {
+  const data = LEGAL_TEXT[key];
+  if (!data) return;
+  document.getElementById('legal-modal-title').textContent = data.title;
+  document.getElementById('legal-modal-body').textContent = data.body;
+  document.getElementById('legal-modal').classList.add('open');
+}
+function closeLegalModal() {
+  document.getElementById('legal-modal').classList.remove('open');
+}
+
 function openServiceModal(key) {
   const s = SERVICES[key];
   if (!s) return;
+  currentModalService = key;
   document.getElementById('modal-icon').textContent = s.icon;
   document.getElementById('modal-title').textContent = s.title;
   document.getElementById('modal-price').textContent = s.price;
@@ -956,13 +1066,13 @@ function renderClientCTAs() {
   if (!list) return;
   const active = ctas.filter(c => c.active);
   list.innerHTML = active.length ? active.map(c => `
-    <div class="cta-item" onclick="window.open('${c.url}','_blank')">
+    <a class="cta-item" href="${c.url}" target="_blank" rel="noopener noreferrer">
       <div class="cta-item-left">
         <div class="cta-icon-circle" style="background:${c.color}20"><span style="font-size:16px">${c.icon}</span></div>
         <div><div class="cta-label">${c.label}</div><div class="cta-url">${c.url.replace('https://','').replace('mailto:','')}</div></div>
       </div>
       <span class="cta-arrow">›</span>
-    </div>`).join('') : '<div style="font-size:12px;color:rgba(255,255,255,0.3);padding:10px 0">Sin canales activos</div>';
+    </a>`).join('') : '<div style="font-size:12px;color:rgba(255,255,255,0.3);padding:10px 0">Sin canales activos</div>';
 }
 
 function renderAdminCTAs() {
@@ -1025,10 +1135,15 @@ function renderServiceBars() {
 
 document.addEventListener('click', e => {
   if (e.target === document.getElementById('service-modal')) closeModal();
+  if (e.target === document.getElementById('legal-modal')) closeLegalModal();
 });
 
 switchAuthTab('login');
 renderClientCTAs();
 renderAdminCTAs();
+renderMisReservas();
 setTimeout(renderServiceBars, 100);
 </script>
+
+</body>
+</html>
