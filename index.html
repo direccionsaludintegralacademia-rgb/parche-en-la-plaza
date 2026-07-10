@@ -92,6 +92,7 @@
   }
   .form-input:focus { border-color: var(--amarillo); }
   .form-input::placeholder { color: rgba(255,255,255,0.3); }
+  .field-error { color: var(--rojo); font-size: 11px; min-height: 14px; margin-top: -2px; }
   .role-selector { display: flex; gap: 8px; }
   .role-btn {
     flex: 1; padding: 10px; border-radius: 8px; border: 1.5px solid rgba(255,255,255,0.15);
@@ -378,22 +379,24 @@
       <div class="form-group">
         <div class="form-label">Correo Electrónico</div>
         <input class="form-input" type="email" placeholder="tu@correo.com" id="login-email" />
+        <div class="field-error" id="login-email-error"></div>
       </div>
       <div class="form-group">
         <div class="form-label">Contraseña</div>
         <input class="form-input" type="password" placeholder="••••••••" id="login-pass" />
+        <div class="field-error" id="login-pass-error"></div>
       </div>
       <div style="text-align:right;margin:-4px 0 4px">
-        <span style="font-size:11px;color:var(--amarillo);cursor:pointer">¿Olvidaste tu contraseña?</span>
+        <span style="font-size:11px;color:var(--amarillo);cursor:pointer" onclick="handleForgotPassword()">¿Olvidaste tu contraseña?</span>
       </div>
       <button class="btn-primary" onclick="handleLogin()">Ingresar</button>
       <div class="divider"><span>o continúa con</span></div>
       <div class="social-row">
-        <button class="btn-social">
+        <button class="btn-social" onclick="socialLogin('google')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
           Google
         </button>
-        <button class="btn-social">
+        <button class="btn-social" onclick="socialLogin('facebook')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
           Facebook
         </button>
@@ -403,28 +406,33 @@
     <div id="auth-panel-register" style="display:none">
       <div class="form-group">
         <div class="form-label">Nombre Completo</div>
-        <input class="form-input" type="text" placeholder="María García" />
+        <input class="form-input" type="text" placeholder="María García" id="register-name" />
+        <div class="field-error" id="register-name-error"></div>
       </div>
       <div class="form-group">
         <div class="form-label">Correo Electrónico</div>
-        <input class="form-input" type="email" placeholder="tu@correo.com" />
+        <input class="form-input" type="email" placeholder="tu@correo.com" id="register-email" />
+        <div class="field-error" id="register-email-error"></div>
       </div>
       <div class="form-group">
         <div class="form-label">Teléfono / WhatsApp</div>
-        <input class="form-input" type="tel" placeholder="+57 300 000 0000" />
+        <input class="form-input" type="tel" placeholder="+57 300 000 0000" id="register-phone" />
+        <div class="field-error" id="register-phone-error"></div>
       </div>
       <div class="form-group">
         <div class="form-label">País de Origen</div>
-        <input class="form-input" type="text" placeholder="Colombia" />
+        <input class="form-input" type="text" placeholder="Colombia" id="register-country" />
+        <div class="field-error" id="register-country-error"></div>
       </div>
       <div class="form-group">
         <div class="form-label">Contraseña</div>
-        <input class="form-input" type="password" placeholder="Mínimo 8 caracteres" />
+        <input class="form-input" type="password" placeholder="Mínimo 8 caracteres" id="register-pass" />
+        <div class="field-error" id="register-pass-error"></div>
       </div>
       <div style="font-size:11px;color:rgba(255,255,255,0.35);line-height:1.5;margin:4px 0">
         Al registrarte aceptas nuestros Términos de Servicio y Política de Privacidad.
       </div>
-      <button class="btn-primary" onclick="goTo('client')">Crear Cuenta</button>
+      <button class="btn-primary" onclick="handleRegister()">Crear Cuenta</button>
     </div>
 
     <div style="margin-top:10px;text-align:center">
@@ -795,6 +803,102 @@ const DEFAULT_CTAS = [
 let ctas = JSON.parse(JSON.stringify(DEFAULT_CTAS));
 let selectedRole = 'cliente';
 
+// ---- Almacenamiento local de usuarios (demo sin backend real) ----
+const PP_USERS_KEY = 'ppUsers';
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem(PP_USERS_KEY)) || []; } catch (e) { return []; }
+}
+function saveUsers(users) { localStorage.setItem(PP_USERS_KEY, JSON.stringify(users)); }
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+function isValidPhone(phone) {
+  return /^[0-9+\s()-]{7,20}$/.test(phone);
+}
+function showFieldError(id, message) {
+  const el = document.getElementById(id + '-error');
+  if (el) el.textContent = message;
+}
+function clearFieldError(id) {
+  const el = document.getElementById(id + '-error');
+  if (el) el.textContent = '';
+}
+function clearFieldErrors(ids) { ids.forEach(clearFieldError); }
+
+function handleLogin() {
+  clearFieldErrors(['login-email','login-pass']);
+  const emailEl = document.getElementById('login-email');
+  const passEl = document.getElementById('login-pass');
+  const email = emailEl.value.trim();
+  const pass = passEl.value;
+  let valid = true;
+
+  if (!email) { showFieldError('login-email', 'Ingresa tu correo electrónico.'); valid = false; }
+  else if (!isValidEmail(email)) { showFieldError('login-email', 'Ingresa un correo válido.'); valid = false; }
+
+  if (!pass) { showFieldError('login-pass', 'Ingresa tu contraseña.'); valid = false; }
+  else if (pass.length < 6) { showFieldError('login-pass', 'Mínimo 6 caracteres.'); valid = false; }
+
+  if (!valid) return;
+
+  const users = getUsers();
+  const match = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === pass);
+
+  if (!match && selectedRole !== 'admin') {
+    showFieldError('login-pass', 'Correo o contraseña incorrectos, o aún no tienes cuenta. Regístrate arriba.');
+    return;
+  }
+
+  if (selectedRole === 'admin') goTo('admin');
+  else goTo('client');
+}
+
+function handleRegister() {
+  const ids = ['register-name','register-email','register-phone','register-country','register-pass'];
+  clearFieldErrors(ids);
+
+  const name = document.getElementById('register-name').value.trim();
+  const email = document.getElementById('register-email').value.trim();
+  const phone = document.getElementById('register-phone').value.trim();
+  const country = document.getElementById('register-country').value.trim();
+  const pass = document.getElementById('register-pass').value;
+  let valid = true;
+
+  if (!name) { showFieldError('register-name', 'Ingresa tu nombre completo.'); valid = false; }
+  if (!email) { showFieldError('register-email', 'Ingresa tu correo electrónico.'); valid = false; }
+  else if (!isValidEmail(email)) { showFieldError('register-email', 'Ingresa un correo válido.'); valid = false; }
+  if (!phone) { showFieldError('register-phone', 'Ingresa tu teléfono/WhatsApp.'); valid = false; }
+  else if (!isValidPhone(phone)) { showFieldError('register-phone', 'Ingresa un teléfono válido.'); valid = false; }
+  if (!country) { showFieldError('register-country', 'Ingresa tu país de origen.'); valid = false; }
+  if (!pass) { showFieldError('register-pass', 'Crea una contraseña.'); valid = false; }
+  else if (pass.length < 8) { showFieldError('register-pass', 'Mínimo 8 caracteres.'); valid = false; }
+
+  if (!valid) return;
+
+  const users = getUsers();
+  if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+    showFieldError('register-email', 'Ya existe una cuenta con este correo. Inicia sesión.');
+    return;
+  }
+
+  users.push({ name, email, phone, country, password: pass, role: 'cliente' });
+  saveUsers(users);
+  selectedRole = 'cliente';
+  goTo('client');
+}
+
+function socialLogin(provider) {
+  const label = provider === 'google' ? 'Google' : 'Facebook';
+  alert('Inicio de sesión con ' + label + ' (demostración): para activarlo con cuentas reales hace falta configurar credenciales OAuth propias de ' + label + '. Continuarás con una cuenta demo.');
+  selectedRole = 'cliente';
+  goTo('client');
+}
+
+function handleForgotPassword() {
+  alert('Recuperación de contraseña en modo demo: en una versión con backend real, aquí se enviaría un correo para restablecer tu contraseña.');
+}
+
 function goTo(screen, tab, role) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + screen).classList.add('active');
@@ -821,10 +925,6 @@ function selectRole(role) {
   });
 }
 
-function handleLogin() {
-  if (selectedRole === 'admin') goTo('admin');
-  else goTo('client');
-}
 
 function switchAdminTab(tab) {
   document.querySelectorAll('.admin-tab-btn').forEach((b,i) => {
